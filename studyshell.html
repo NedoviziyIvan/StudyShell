@@ -633,14 +633,81 @@
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
+
+  /* ===== SETTINGS MODAL ===== */
+  .settings-btn {
+    background: rgba(0,0,0,0.15); border: none; border-radius: 12px;
+    width: 42px; height: 42px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; cursor: pointer; flex-shrink: 0; transition: background 0.2s;
+  }
+  .settings-btn:active { background: rgba(0,0,0,0.3); }
+
+  #settings-overlay {
+    display: none; position: fixed; inset: 0; z-index: 250;
+    background: rgba(0,0,0,0.75); align-items: flex-end;
+  }
+  #settings-overlay.open { display: flex; }
+
+  .settings-sheet {
+    background: var(--bg2); border-radius: 24px 24px 0 0;
+    padding: 24px; width: 100%; max-width: 480px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 20px;
+    animation: slideUp 0.3s ease;
+  }
+  .settings-row {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .settings-section-title {
+    font-size: 11px; font-weight: 900; color: var(--text-muted);
+    letter-spacing: 1px; margin-bottom: -8px;
+  }
+  .lang-switcher {
+    display: flex; gap: 8px;
+  }
+  .lang-btn {
+    flex: 1; padding: 10px 6px; border-radius: 12px;
+    background: var(--bg3); border: 2px solid var(--bg4);
+    font-family: inherit; font-size: 13px; font-weight: 800;
+    color: var(--text-muted); cursor: pointer; text-align: center;
+    transition: all 0.15s;
+  }
+  .lang-btn.active {
+    background: rgba(42,171,238,0.15); border-color: var(--accent);
+    color: var(--accent);
+  }
+  .settings-info {
+    background: var(--bg3); border-radius: 14px; padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 6px;
+    border: 1px solid var(--bg4);
+  }
+  .settings-info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 13px; font-weight: 700;
+  }
+  .settings-info-row a {
+    color: var(--accent); text-decoration: none; font-weight: 800;
+  }
+  .settings-info-row span { color: var(--text-muted); }
+  .settings-continue-btn {
+    background: var(--accent); color: var(--bg); border: none;
+    border-radius: 14px; padding: 14px; font-family: inherit;
+    font-size: 15px; font-weight: 900; cursor: pointer;
+    display: none;
+  }
+  .settings-close-btn {
+    background: var(--bg3); color: var(--text); border: none;
+    border-radius: 14px; padding: 12px; font-family: inherit;
+    font-size: 14px; font-weight: 800; cursor: pointer;
+  }
 </style>
 </head>
 <body>
 
 <!-- ===== LIBRARY SCREEN ===== -->
 <div id="screen-library" class="screen active">
-  <div class="library-header" id="library-header" style="cursor:pointer;user-select:none;">
-    <h1>Курсы:</h1>
+  <div class="library-header" id="library-header" style="cursor:pointer;user-select:none;display:flex;align-items:center;justify-content:space-between;">
+    <h1 id="lib-title">Курсы:</h1>
+    <button class="settings-btn" id="settings-open-btn">⚙️</button>
   </div>
 
   <div class="courses-grid" id="courses-grid">
@@ -759,13 +826,13 @@ W: Неправильный вариант
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
       <path d="M4 6h16M4 10h16M4 14h10M4 18h10"/>
     </svg>
-    Курсы
+    <span class="nav-text">Курсы</span>
   </button>
   <button class="nav-btn active" id="nav-star">
     <svg viewBox="0 0 24 24" fill="currentColor">
       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
-    Уроки
+    <span class="nav-text">Уроки</span>
   </button>
 </div>
 
@@ -793,7 +860,7 @@ W: Неправильный вариант
 <div id="theory-modal">
   <div class="theory-sheet">
     <div class="theory-sheet-header">
-      <div class="theory-sheet-title">📖 Теория</div>
+      <div class="theory-sheet-title" id="theory-sheet-title">📖 Теория</div>
       <button class="theory-close" id="theory-close">✕</button>
     </div>
     <div class="theory-body" id="theory-body"></div>
@@ -805,7 +872,7 @@ W: Неправильный вариант
   <div class="admin-card" id="admin-card">
     <!-- login view -->
     <div id="admin-login-view">
-      <div class="admin-title">🔐 Панель администратора</div>
+      <div id="admin-title-login" class="admin-title">🔐 Панель администратора</div>
       <input class="admin-input" id="admin-pass-input" type="password" placeholder="••••••••" maxlength="20">
       <div class="admin-err" id="admin-err"></div>
       <button class="admin-login-btn" id="admin-login-btn">Войти</button>
@@ -813,39 +880,70 @@ W: Неправильный вариант
     </div>
     <!-- stats view -->
     <div id="admin-stats-view" style="display:none;">
-      <div class="admin-title">📊 Глобальная статистика</div>
+      <div id="admin-title-stats" class="admin-title">📊 Глобальная статистика</div>
       <div class="admin-stats">
         <div class="stat-card">
           <div class="stat-icon">👥</div>
           <div class="stat-info">
-            <div class="stat-label">УНИКАЛЬНЫХ ПОЛЬЗОВАТЕЛЕЙ</div>
+            <div class="stat-label" id="stat-label-users">УНИКАЛЬНЫХ ПОЛЬЗОВАТЕЛЕЙ</div>
             <div class="stat-value" id="stat-users"><span class="stat-loading">…</span></div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">🟢</div>
           <div class="stat-info">
-            <div class="stat-label">ОНЛАЙН СЕЙЧАС</div>
+            <div class="stat-label" id="stat-label-online">ОНЛАЙН СЕЙЧАС</div>
             <div class="stat-value" id="stat-online"><span class="stat-loading">…</span></div>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon">📚</div>
           <div class="stat-info">
-            <div class="stat-label">ВСЕГО ИМПОРТОВ КУРСОВ</div>
+            <div class="stat-label" id="stat-label-imports">ВСЕГО ИМПОРТОВ КУРСОВ</div>
             <div class="stat-value" id="stat-imports"><span class="stat-loading">…</span></div>
           </div>
         </div>
         <div class="stat-card" style="border-top:1px solid var(--bg4);margin-top:4px;">
           <div class="stat-icon">🖥️</div>
           <div class="stat-info">
-            <div class="stat-label">МОЙ ID УСТРОЙСТВА</div>
+            <div class="stat-label" id="stat-label-myid">МОЙ ID УСТРОЙСТВА</div>
             <div class="stat-value" id="stat-myid" style="font-size:11px;word-break:break-all;color:var(--text-muted)">—</div>
           </div>
         </div>
       </div>
       <button class="admin-close-btn" id="admin-stats-close">Закрыть</button>
     </div>
+  </div>
+</div>
+
+<!-- ===== SETTINGS MODAL ===== -->
+<div id="settings-overlay">
+  <div class="settings-sheet">
+    <div class="settings-row">
+      <div style="font-size:20px;font-weight:900;">⚙️ Настройки</div>
+    </div>
+
+    <div class="settings-section-title" id="s-lang-label">ЯЗЫК ИНТЕРФЕЙСА</div>
+    <div class="lang-switcher">
+      <button class="lang-btn" data-lang="ru" id="lang-ru">🇷🇺 Рус</button>
+      <button class="lang-btn" data-lang="uk" id="lang-uk">🇺🇦 Укр</button>
+      <button class="lang-btn" data-lang="en" id="lang-en">🇬🇧 Eng</button>
+    </div>
+
+    <div class="settings-section-title" id="s-info-label">О ПРИЛОЖЕНИИ</div>
+    <div class="settings-info">
+      <div class="settings-info-row">
+        <span>Версия</span>
+        <span style="color:var(--accent);font-weight:900;">v2.1</span>
+      </div>
+      <div class="settings-info-row">
+        <span>GitHub</span>
+        <a href="https://github.com" target="_blank" id="s-github-link">Открыть →</a>
+      </div>
+    </div>
+
+    <button class="settings-continue-btn" id="settings-continue-btn">▶ Продолжить обучение</button>
+    <button class="settings-close-btn" id="settings-close-btn">Закрыть</button>
   </div>
 </div>
 
@@ -1083,7 +1181,7 @@ function renderCourseScreen() {
     let starIcon = isLocked ? lockSVG : starSVG;
 
     item.innerHTML = `
-      ${isActive ? `<div class="start-bubble">НАЧАТЬ</div>` : ''}
+      ${isActive ? `<div class="start-bubble">${t('startBubble')}</div>` : ''}
       <div class="section-star ${starClass}">${starIcon}</div>
       <div class="section-label">${sec.name}</div>
     `;
@@ -1151,7 +1249,7 @@ function renderQuizQuestion() {
   const total = state.queueTotal;
   const remaining = state.queue.length;
 
-  document.getElementById('questions-left').textContent = `ОСТАЛОСЬ ВОПРОСОВ: ${remaining}`;
+  document.getElementById('questions-left').textContent = `${t('questionsLeft')} ${remaining}`;
   document.getElementById('question-text').innerHTML = renderText(task.q);
   document.getElementById('quiz-progress').style.width = `${Math.max(5, ((total - remaining) / total) * 100)}%`;
   document.getElementById('lives-count').textContent = remaining;
@@ -1172,7 +1270,7 @@ function renderQuizQuestion() {
   state.selectedAnswer = null;
   state.answered = false;
   const checkBtn = document.getElementById('check-btn');
-  checkBtn.textContent = 'ПРОВЕРИТЬ';
+  checkBtn.textContent = t('checkBtn');
   checkBtn.className = 'check-btn';
   document.getElementById('feedback-bar').className = 'feedback-bar';
 }
@@ -1221,14 +1319,14 @@ document.getElementById('check-btn').addEventListener('click', () => {
     state.stats.correct++;
     state.consecutiveErrors = 0;
     fb.className = 'feedback-bar correct';
-    fb.innerHTML = '✓ Верно!';
+    fb.innerHTML = t('correct');
     state.queue.shift();
   } else {
     state.consecutiveErrors++;
     fb.className = 'feedback-bar wrong';
-    fb.innerHTML = `✗ Правильно: ${task.a}`;
-    const t = state.queue.shift();
-    state.queue.push(t);
+    fb.innerHTML = `${t('wrong')} ${task.a}`;
+    const t2 = state.queue.shift();
+    state.queue.push(t2);
   }
 
   // Pulse theory btn after 3 consecutive errors
@@ -1241,7 +1339,7 @@ document.getElementById('check-btn').addEventListener('click', () => {
   }
 
   save();
-  checkBtn.textContent = 'ДАЛЕЕ';
+  checkBtn.textContent = t('nextBtn');
   checkBtn.className = 'check-btn next';
 });
 
@@ -1375,7 +1473,7 @@ function makeMatchBtn(item) {
 
 function updateMatchCounter() {
   const remaining = state.matchLeft.filter(i => !i.matched && i.side === 'left').length;
-  document.getElementById('remaining-btn').textContent = `ОСТАЛОСЬ: ${remaining}`;
+  document.getElementById('remaining-btn').textContent = `${t('remaining')} ${remaining}`;
 }
 
 document.getElementById('match-back').addEventListener('click', () => {
@@ -1432,15 +1530,15 @@ document.getElementById('import-overlay').addEventListener('click', (e) => {
 
 document.getElementById('import-confirm').addEventListener('click', () => {
   const text = document.getElementById('paste-area').value.trim();
-  if (!text) { showToast('Вставьте текст курса!'); return; }
+  if (!text) { showToast(t('toastNoText')); return; }
   const course = parseCourse(text);
-  if (!course.sections.length) { showToast('Не найдено разделов [SECTION]'); return; }
+  if (!course.sections.length) { showToast(t('toastNoSections')); return; }
   state.courses.push(course);
   save();
   sbTrackImport();
   renderLibrary();
   document.getElementById('import-overlay').classList.remove('open');
-  showToast(`✅ Курс "${course.title}" добавлен!`);
+  showToast(`${t('toastAdded')} "${course.title}"`);
 });
 
 // ===== THEORY MODAL =====
@@ -1600,14 +1698,14 @@ document.getElementById('admin-login-btn').addEventListener('click', async () =>
     const stats = await sbFetchStats();
 
     document.getElementById('stat-users').textContent =
-      stats.users !== null ? stats.users : '⚠️ нет данных';
+      stats.users !== null ? stats.users : t('adminNoData');
     document.getElementById('stat-online').textContent =
-      stats.online !== null ? stats.online : '⚠️ нет данных';
+      stats.online !== null ? stats.online : t('adminNoData');
     document.getElementById('stat-imports').textContent =
-      stats.imports !== null ? stats.imports : '⚠️ нет данных';
+      stats.imports !== null ? stats.imports : t('adminNoData');
 
   } else {
-    document.getElementById('admin-err').textContent = '❌ Неверный пароль';
+    document.getElementById('admin-err').textContent = t('adminWrongPass');
     document.getElementById('admin-pass-input').value = '';
   }
 });
@@ -1639,12 +1737,12 @@ document.getElementById('instr-toggle').addEventListener('click', () => {
 
 document.getElementById('copy-prompt-btn').addEventListener('click', () => {
   const text = document.getElementById('prompt-text').textContent;
-  navigator.clipboard.writeText(text).then(() => showToast('📋 Скопировано!')).catch(() => {
+  navigator.clipboard.writeText(text).then(() => showToast(t('toastCopied'))).catch(() => {
     // Fallback
     const ta = document.createElement('textarea');
     ta.value = text; document.body.appendChild(ta); ta.select();
     document.execCommand('copy'); document.body.removeChild(ta);
-    showToast('📋 Скопировано!');
+    showToast(t('toastCopied'));
   });
 });
 
@@ -1689,12 +1787,313 @@ function shuffleArr(arr) {
   return arr;
 }
 
+// ===== LOCALIZATION =====
+const T = {
+  ru: {
+    libTitle: 'Курсы:',
+    addCourse: 'Добавить Курс',
+    instrToggle: '▼ Инструкция и промт для ИИ',
+    instrToggleOpen: '▲ Инструкция и промт для ИИ',
+    instrLabel: 'Промт для ChatGPT / Gemini',
+    copyBtn: '📋 Копировать',
+    navCourses: 'Курсы',
+    navLessons: 'Уроки',
+    checkBtn: 'ПРОВЕРИТЬ',
+    nextBtn: 'ДАЛЕЕ',
+    correct: '✓ Верно!',
+    wrong: '✗ Правильно:',
+    questionsLeft: 'ОСТАЛОСЬ ВОПРОСОВ:',
+    matchTitle: 'Найди соответствующие пары',
+    matchLabel: 'НАЙДИ СООТВЕТСТВУЮЩИЕ ПАРЫ',
+    remaining: 'ОСТАЛОСЬ:',
+    completeTitle: 'Раздел пройден!',
+    completeSub: 'Отличная работа!',
+    continueBtn: 'Продолжить',
+    importTitle: 'Добавить курс',
+    importHint: 'Нажми чтобы выбрать файл (.txt, .study)',
+    importPaste: 'или вставь текст курса:',
+    importCancel: 'Отмена',
+    importConfirm: 'Добавить →',
+    courseLabel: 'КУРС',
+    startBubble: 'НАЧАТЬ',
+    sLangLabel: 'ЯЗЫК ИНТЕРФЕЙСА',
+    sInfoLabel: 'О ПРИЛОЖЕНИИ',
+    sVersion: 'Версия',
+    sGithub: 'GitHub',
+    sGithubLink: 'Открыть →',
+    continueLearn: '▶ Продолжить обучение',
+    close: 'Закрыть',
+    adminTitle: '🔐 Панель администратора',
+    adminLogin: 'Войти',
+    adminCancel: 'Отмена',
+    adminStatsTitle: '📊 Глобальная статистика',
+    adminUsers: 'УНИКАЛЬНЫХ ПОЛЬЗОВАТЕЛЕЙ',
+    adminOnline: 'ОНЛАЙН СЕЙЧАС',
+    adminImports: 'ВСЕГО ИМПОРТОВ КУРСОВ',
+    adminMyId: 'МОЙ ID УСТРОЙСТВА',
+    adminWrongPass: '❌ Неверный пароль',
+    adminNoData: '⚠️ нет данных',
+    toastCopied: '📋 Скопировано!',
+    toastAdded: '✅ Курс добавлен!',
+    toastNoText: 'Вставьте текст курса!',
+    toastNoSections: 'Не найдено разделов [SECTION]',
+    settingsTitle: '⚙️ Настройки',
+    theoryTitle: '📖 Теория',
+  },
+  uk: {
+    libTitle: 'Курси:',
+    addCourse: 'Додати Курс',
+    instrToggle: '▼ Інструкція та промт для ІІ',
+    instrToggleOpen: '▲ Інструкція та промт для ІІ',
+    instrLabel: 'Промт для ChatGPT / Gemini',
+    copyBtn: '📋 Копіювати',
+    navCourses: 'Курси',
+    navLessons: 'Уроки',
+    checkBtn: 'ПЕРЕВІРИТИ',
+    nextBtn: 'ДАЛІ',
+    correct: '✓ Вірно!',
+    wrong: '✗ Правильно:',
+    questionsLeft: 'ЗАЛИШИЛОСЬ ПИТАНЬ:',
+    matchTitle: 'Знайди відповідні пари',
+    matchLabel: 'ЗНАЙДИ ВІДПОВІДНІ ПАРИ',
+    remaining: 'ЗАЛИШИЛОСЬ:',
+    completeTitle: 'Розділ пройдено!',
+    completeSub: 'Чудова робота!',
+    continueBtn: 'Продовжити',
+    importTitle: 'Додати курс',
+    importHint: 'Натисни щоб вибрати файл (.txt, .study)',
+    importPaste: 'або встав текст курсу:',
+    importCancel: 'Скасувати',
+    importConfirm: 'Додати →',
+    courseLabel: 'КУРС',
+    startBubble: 'ПОЧАТИ',
+    sLangLabel: 'МОВА ІНТЕРФЕЙСУ',
+    sInfoLabel: 'ПРО ЗАСТОСУНОК',
+    sVersion: 'Версія',
+    sGithub: 'GitHub',
+    sGithubLink: 'Відкрити →',
+    continueLearn: '▶ Продовжити навчання',
+    close: 'Закрити',
+    adminTitle: '🔐 Панель адміністратора',
+    adminLogin: 'Увійти',
+    adminCancel: 'Скасувати',
+    adminStatsTitle: '📊 Глобальна статистика',
+    adminUsers: 'УНІКАЛЬНИХ КОРИСТУВАЧІВ',
+    adminOnline: 'ОНЛАЙН ЗАРАЗ',
+    adminImports: 'ВСЬОГО ІМПОРТІВ КУРСІВ',
+    adminMyId: 'МІЙ ID ПРИСТРОЮ',
+    adminWrongPass: '❌ Невірний пароль',
+    adminNoData: '⚠️ немає даних',
+    toastCopied: '📋 Скопійовано!',
+    toastAdded: '✅ Курс додано!',
+    toastNoText: 'Вставте текст курсу!',
+    toastNoSections: 'Не знайдено розділів [SECTION]',
+    settingsTitle: '⚙️ Налаштування',
+    theoryTitle: '📖 Теорія',
+  },
+  en: {
+    libTitle: 'Courses:',
+    addCourse: 'Add Course',
+    instrToggle: '▼ Instructions & AI Prompt',
+    instrToggleOpen: '▲ Instructions & AI Prompt',
+    instrLabel: 'Prompt for ChatGPT / Gemini',
+    copyBtn: '📋 Copy',
+    navCourses: 'Courses',
+    navLessons: 'Lessons',
+    checkBtn: 'CHECK',
+    nextBtn: 'NEXT',
+    correct: '✓ Correct!',
+    wrong: '✗ Right answer:',
+    questionsLeft: 'QUESTIONS LEFT:',
+    matchTitle: 'Find matching pairs',
+    matchLabel: 'FIND MATCHING PAIRS',
+    remaining: 'LEFT:',
+    completeTitle: 'Section complete!',
+    completeSub: 'Great job!',
+    continueBtn: 'Continue',
+    importTitle: 'Add course',
+    importHint: 'Tap to select file (.txt, .study)',
+    importPaste: 'or paste course text:',
+    importCancel: 'Cancel',
+    importConfirm: 'Add →',
+    courseLabel: 'COURSE',
+    startBubble: 'START',
+    sLangLabel: 'INTERFACE LANGUAGE',
+    sInfoLabel: 'ABOUT',
+    sVersion: 'Version',
+    sGithub: 'GitHub',
+    sGithubLink: 'Open →',
+    continueLearn: '▶ Resume learning',
+    close: 'Close',
+    adminTitle: '🔐 Admin Panel',
+    adminLogin: 'Login',
+    adminCancel: 'Cancel',
+    adminStatsTitle: '📊 Global Statistics',
+    adminUsers: 'UNIQUE USERS',
+    adminOnline: 'ONLINE NOW',
+    adminImports: 'TOTAL COURSE IMPORTS',
+    adminMyId: 'MY DEVICE ID',
+    adminWrongPass: '❌ Wrong password',
+    adminNoData: '⚠️ no data',
+    toastCopied: '📋 Copied!',
+    toastAdded: '✅ Course added!',
+    toastNoText: 'Paste course text first!',
+    toastNoSections: 'No [SECTION] blocks found',
+    settingsTitle: '⚙️ Settings',
+    theoryTitle: '📖 Theory',
+  }
+};
+
+function detectLang() {
+  const saved = localStorage.getItem('studyshell_lang');
+  if (saved && T[saved]) return saved;
+  const sys = (navigator.language || 'ru').slice(0, 2).toLowerCase();
+  if (sys === 'uk') return 'uk';
+  if (sys === 'en') return 'en';
+  return 'ru';
+}
+
+let currentLang = detectLang();
+
+function t(key) { return (T[currentLang] && T[currentLang][key]) || T.ru[key] || key; }
+
+function applyLang() {
+  const el = (id) => document.getElementById(id);
+
+  // --- Library ---
+  if (el('lib-title')) el('lib-title').textContent = t('libTitle');
+  const addLabel = document.querySelector('.add-course-card .course-label');
+  if (addLabel) addLabel.textContent = t('addCourse');
+
+  // Instruction toggle
+  const instrToggle = el('instr-toggle');
+  if (instrToggle) {
+    const isOpen = el('instr-body') && el('instr-body').classList.contains('open');
+    instrToggle.textContent = isOpen ? t('instrToggleOpen') : t('instrToggle');
+  }
+  const instrLbl = el('instr-body') && el('instr-body').querySelector('.instruction-label');
+  if (instrLbl) instrLbl.textContent = t('instrLabel');
+  if (el('copy-prompt-btn')) el('copy-prompt-btn').textContent = t('copyBtn');
+
+  // --- Nav ---
+  // nav buttons have: svg + text node — update lastChild safely
+  const navLib = el('nav-library');
+  const navStar = el('nav-star');
+  if (navLib) { const tn = navLib.querySelector('span.nav-text'); if (tn) tn.textContent = t('navCourses'); }
+  if (navStar) { const tn = navStar.querySelector('span.nav-text'); if (tn) tn.textContent = t('navLessons'); }
+
+  // --- Import overlay ---
+  const importTitleEl = document.querySelector('.import-title');
+  if (importTitleEl) importTitleEl.textContent = t('importTitle');
+  const importHintEl = document.querySelector('.import-area p');
+  if (importHintEl) importHintEl.textContent = t('importHint');
+  const importPasteEl = document.querySelector('.import-paste-label');
+  if (importPasteEl) importPasteEl.textContent = t('importPaste');
+  if (el('import-cancel')) el('import-cancel').textContent = t('importCancel');
+  if (el('import-confirm')) el('import-confirm').textContent = t('importConfirm');
+
+  // --- Quiz ---
+  const qLeft = el('questions-left');
+  if (qLeft && state.queue.length) qLeft.textContent = `${t('questionsLeft')} ${state.queue.length}`;
+  const checkBtn = el('check-btn');
+  if (checkBtn && !checkBtn.classList.contains('next')) checkBtn.textContent = t('checkBtn');
+  else if (checkBtn) checkBtn.textContent = t('nextBtn');
+
+  // --- Match ---
+  const matchTypeLabel = document.querySelector('.match-type-label');
+  if (matchTypeLabel) matchTypeLabel.textContent = t('matchLabel');
+  const matchTitleEl = document.querySelector('.match-title');
+  if (matchTitleEl) matchTitleEl.textContent = t('matchTitle');
+
+  // --- Complete ---
+  if (el('complete-title')) el('complete-title').textContent = t('completeTitle');
+  if (el('complete-sub')) el('complete-sub').textContent = t('completeSub');
+  if (el('complete-btn')) el('complete-btn').textContent = t('continueBtn');
+
+  // --- Course header ---
+  const kursLabel = document.querySelector('.kurs-label');
+  if (kursLabel) kursLabel.textContent = t('courseLabel');
+
+  // --- Settings modal ---
+  const settingsTitleEl = document.querySelector('.settings-sheet > div:first-child');
+  if (settingsTitleEl) settingsTitleEl.textContent = t('settingsTitle');
+  if (el('s-lang-label')) el('s-lang-label').textContent = t('sLangLabel');
+  if (el('s-info-label')) el('s-info-label').textContent = t('sInfoLabel');
+  const sVersionRow = document.querySelector('.settings-info .settings-info-row:first-child span:first-child');
+  if (sVersionRow) sVersionRow.textContent = t('sVersion');
+  const sGithubLabel = document.querySelector('.settings-info .settings-info-row:last-child span');
+  if (sGithubLabel) sGithubLabel.textContent = t('sGithub');
+  const sGithubLink = el('s-github-link');
+  if (sGithubLink) sGithubLink.textContent = t('sGithubLink');
+  if (el('settings-continue-btn')) el('settings-continue-btn').textContent = t('continueLearn');
+  if (el('settings-close-btn')) el('settings-close-btn').textContent = t('close');
+
+  // --- Admin panel ---
+  if (el('admin-title-login')) el('admin-title-login').textContent = t('adminTitle');
+  if (el('admin-login-btn')) el('admin-login-btn').textContent = t('adminLogin');
+  if (el('admin-cancel-btn')) el('admin-cancel-btn').textContent = t('adminCancel');
+  if (el('admin-title-stats')) el('admin-title-stats').textContent = t('adminStatsTitle');
+  if (el('stat-label-users')) el('stat-label-users').textContent = t('adminUsers');
+  if (el('stat-label-online')) el('stat-label-online').textContent = t('adminOnline');
+  if (el('stat-label-imports')) el('stat-label-imports').textContent = t('adminImports');
+  if (el('stat-label-myid')) el('stat-label-myid').textContent = t('adminMyId');
+  if (el('admin-stats-close')) el('admin-stats-close').textContent = t('close');
+
+  // Theory modal title
+  if (el('theory-sheet-title')) el('theory-sheet-title').textContent = t('theoryTitle');
+
+  // Lang buttons highlight
+  ['ru','uk','en'].forEach(l => {
+    const btn = el('lang-' + l);
+    if (btn) btn.classList.toggle('active', l === currentLang);
+  });
+}
+
+function setLang(lang) {
+  currentLang = lang;
+  localStorage.setItem('studyshell_lang', lang);
+  applyLang();
+}
+
+// ===== SETTINGS MODAL LOGIC =====
+document.getElementById('settings-open-btn').addEventListener('click', (e) => {
+  e.stopPropagation(); // don't trigger admin long-press
+  // Show "continue" btn only if there's an active course
+  const contBtn = document.getElementById('settings-continue-btn');
+  contBtn.style.display = state.currentCourse !== null ? 'block' : 'none';
+  document.getElementById('settings-overlay').classList.add('open');
+});
+
+document.getElementById('settings-close-btn').addEventListener('click', () => {
+  document.getElementById('settings-overlay').classList.remove('open');
+});
+
+document.getElementById('settings-overlay').addEventListener('click', (e) => {
+  if (e.target === document.getElementById('settings-overlay'))
+    document.getElementById('settings-overlay').classList.remove('open');
+});
+
+document.getElementById('settings-continue-btn').addEventListener('click', () => {
+  document.getElementById('settings-overlay').classList.remove('open');
+  if (state.currentCourse !== null) {
+    renderCourseScreen();
+    showScreen('course');
+    document.getElementById('nav-star').classList.add('active');
+    document.getElementById('nav-library').classList.remove('active');
+  }
+});
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.addEventListener('click', () => setLang(btn.dataset.lang));
+});
+
 // ===== INIT =====
 load();
 renderLibrary();
 showScreen('library');
 document.getElementById('nav-star').classList.remove('active');
 document.getElementById('nav-library').classList.add('active');
+applyLang();
 </script>
 </body>
 </html>
