@@ -400,12 +400,13 @@
 
   .feedback-bar {
     background: var(--bg3); border-radius: 12px;
-    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px;
     font-weight: 800; font-size: 15px;
     display: none;
   }
-  .feedback-bar.correct { background: rgba(63,185,80,0.15); color: var(--success); border: 1px solid rgba(63,185,80,0.3); display: flex; }
-  .feedback-bar.wrong { background: rgba(248,81,73,0.1); color: var(--danger); border: 1px solid rgba(248,81,73,0.3); display: flex; }
+  .feedback-bar.correct { background: rgba(63,185,80,0.15); color: var(--success); border: 1px solid rgba(63,185,80,0.3); display: block; }
+  .feedback-bar.wrong { background: rgba(248,81,73,0.1); color: var(--danger); border: 1px solid rgba(248,81,73,0.3); display: block; }
+  .feedback-bar .hint { display: block; font-size: 13px; font-weight: 600; margin-top: 5px; opacity: 0.8; }
 
   .check-btn {
     background: var(--bg3); color: var(--text-muted);
@@ -421,7 +422,7 @@
   /* ===== MATCH SCREEN ===== */
   #screen-match { padding: 0; }
 
-  .match-content { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; }
+  .match-content { flex: 1; padding: 16px; display: flex; flex-direction: column; gap: 16px; padding-bottom: 100px; overflow-y: auto; }
 
   .match-type-label { font-size: 11px; font-weight: 900; color: var(--text-muted); letter-spacing: 1px; }
 
@@ -451,8 +452,16 @@
   }
 
   .match-footer {
+    position: fixed;
+    bottom: 0;
+    left: 50%; transform: translateX(-50%);
+    width: 100%; max-width: 480px;
     padding: 12px 16px env(safe-area-inset-bottom, 16px);
-    border-top: 1px solid var(--bg3);
+    background: rgba(13, 17, 23, 0.75);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    z-index: 50;
   }
 
   .remaining-btn {
@@ -649,6 +658,69 @@
   .stat-loading { color: var(--text-muted); font-size: 18px; animation: pulse 1.5s ease infinite; }
   .stat-error { color: var(--danger); font-size: 13px; font-weight: 700; }
 
+  /* ===== INPUT TASK STYLES ===== */
+  .inline-input {
+    display: inline-block;
+    background: var(--bg3);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 4px 10px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: clamp(16px, 4.5vw, 22px);
+    font-weight: 700;
+    outline: none;
+    width: auto;
+    min-width: 100px;
+    max-width: 200px;
+    vertical-align: baseline;
+    margin: 0 4px;
+    transition: border-color 0.2s;
+  }
+  .inline-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .inline-input:disabled { opacity: 0.8; }
+
+  .block-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 2px solid var(--accent);
+    border-radius: 14px;
+    padding: 14px 18px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: clamp(14px, 4vw, 17px);
+    font-weight: 700;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .block-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+  .block-input:disabled { opacity: 0.8; }
+
+  /* Feedback bar subtitle */
+  /* Word-by-word retry inputs */
+  .word-inputs { line-height: 1.8; }
+  .word-static {
+    font-size: clamp(16px, 4.5vw, 22px);
+    font-weight: 700;
+    color: var(--text);
+  }
+  .word-input {
+    background: var(--bg3);
+    border: 2px solid var(--accent);
+    border-radius: 8px;
+    padding: 4px 8px;
+    color: var(--text);
+    font-family: inherit;
+    font-size: clamp(14px, 4vw, 18px);
+    font-weight: 700;
+    outline: none;
+    text-align: center;
+    min-width: 50px;
+    transition: border-color 0.2s;
+  }
+  .word-input:focus { box-shadow: 0 0 0 3px var(--accent-glow); }
+  .word-input:disabled { opacity: 0.85; }
+
   /* Scrollbar */
   ::-webkit-scrollbar { width: 4px; }
   ::-webkit-scrollbar-thumb { background: var(--bg4); border-radius: 2px; }
@@ -819,33 +891,48 @@
         <div class="instruction-label">Промт для ChatGPT / Gemini</div>
         <button class="copy-btn" id="copy-prompt-btn">📋 Копировать</button>
       </div>
-      <div class="prompt-box" id="prompt-text">Напиши курс по теме [ТВОЯ ТЕМА] для приложения StudyShell. Используй строго этот формат:
+      <div class="prompt-box" id="prompt-text">Напиши учебный курс по теме [ТВОЯ ТЕМА] для приложения StudyShell, используя строго этот синтаксис:
 
 [SETTINGS]
 Title: Название курса
 
 [MODULE]
-Name: Модуль 1
+Name: Название модуля
 
 [THEORY]
-Здесь текст теории в свободной форме.
-Можно использовать *жирный*, _курсив_, ~зачёркнутый~.
-## Заголовок раздела теории
+Текст теории в свободной форме.
+Форматирование: *жирный*, _курсив_, ~зачёркнутый~.
+## Заголовок подтемы
 Текст под заголовком.
 
 [SECTION]
 Name: Название раздела
 
 [TASK]
-Q: Вопрос
+Q: Вопрос с вариантами ответа
 A: Правильный ответ
 W: Неправильный вариант
 W: Неправильный вариант
+T: Перевод или подсказка (опционально)
+Try: Объяснение правила при ошибке (опционально)
+
+[INPUT]
+Q: Вопрос или фраза с ___ для заполнения
+A: Правильный ответ
+T: Перевод или подсказка (опционально)
+Try: Объяснение правила при ошибке (опционально)
 
 [MATCH]
-Слово1 | Перевод1
-Слово2 | Перевод2
-Слово3 | Перевод3</div>
+Элемент1 | Пара1
+Элемент2 | Пара2
+Элемент3 | Пара3
+
+━━━ ПРАВИЛА ДЛЯ ИИ ━━━
+1. T: показывается при верном ответе — короткий перевод/подсказка.
+2. Try: показывается при ошибке — только объяснение правила, не повторяй сам ответ.
+3. [MATCH] — не более 5 пар в одном блоке.
+4. Минимум 4 задания на секцию, чередуй типы.
+5. Пиши от простого к сложному.</div>
     </div>
   </div>
 
@@ -1032,7 +1119,7 @@ W: Неправильный вариант
     <div class="settings-info">
       <div class="settings-info-row">
         <span>Версия</span>
-        <span style="color:var(--accent);font-weight:900;">v3.0</span>
+        <span style="color:var(--accent);font-weight:900;">v3.1</span>
       </div>
       <div class="settings-info-row">
         <span>GitHub</span>
@@ -1095,6 +1182,7 @@ let state = {
   quizRetryQueue: [],
   currentUnifiedIdx: 0,
   contextCourseIdx: null,
+  currentQuizTask: null,
 };
 
 // ===== PERSIST =====
@@ -1194,7 +1282,13 @@ function parseCourse(text) {
     if (line === '[TASK]') {
       flushTask(); flushMatch();
       current = 'task';
-      task = { type:'quiz', q:'', a:'', wrongs:[] };
+      task = { type:'quiz', q:'', a:'', wrongs:[], t:'', try:'' };
+      continue;
+    }
+    if (line === '[INPUT]') {
+      flushTask(); flushMatch();
+      current = 'task';
+      task = { type:'input', q:'', a:'', t:'', try:'' };
       continue;
     }
     if (line === '[MATCH]') {
@@ -1219,7 +1313,9 @@ function parseCourse(text) {
     if (current === 'task' && task) {
       if (line.startsWith('Q:')) task.q = line.replace('Q:', '').trim();
       else if (line.startsWith('A:')) task.a = line.replace('A:', '').trim();
-      else if (line.startsWith('W:')) task.wrongs.push(line.replace('W:', '').trim());
+      else if (line.startsWith('W:')) { if (task.wrongs) task.wrongs.push(line.replace('W:', '').trim()); }
+      else if (line.startsWith('T:')) task.t = line.replace('T:', '').trim();
+      else if (line.startsWith('Try:')) task.try = line.replace('Try:', '').trim();
     }
     if (current === 'match' && line.includes('|')) {
       const parts = line.split('|').map(p => p.trim());
@@ -1286,6 +1382,13 @@ function exportCourse(courseIdx) {
         if (task.type === 'quiz') {
           text += `[TASK]\nQ: ${task.q}\nA: ${task.a}\n`;
           (task.wrongs || []).forEach(w => { text += `W: ${w}\n`; });
+          if (task.t) text += `T: ${task.t}\n`;
+          if (task.try) text += `Try: ${task.try}\n`;
+          text += '\n';
+        } else if (task.type === 'input') {
+          text += `[INPUT]\nQ: ${task.q}\nA: ${task.a}\n`;
+          if (task.t) text += `T: ${task.t}\n`;
+          if (task.try) text += `Try: ${task.try}\n`;
           text += '\n';
         } else if (task.type === 'match') {
           text += `[MATCH]\n`;
@@ -1677,73 +1780,121 @@ function startSection() {
   state.unifiedDone = 0;
   state.quizRetryQueue = [];
   state.currentUnifiedIdx = 0;
+  state.currentQuizTask = null;
 
   runNextUnifiedTask();
 }
 
 function runNextUnifiedTask() {
+  // Primary queue first
+  if (state.currentUnifiedIdx < state.unifiedQueue.length) {
+    const task = state.unifiedQueue[state.currentUnifiedIdx];
+    state.currentUnifiedIdx++;
+    if (task.type === 'quiz' || task.type === 'input') {
+      state.currentQuizTask = task;
+      showScreen('quiz');
+      renderUnifiedQuiz();
+    } else if (task.type === 'match') {
+      startMatch(task);
+    }
+    return;
+  }
+
+  // Primary exhausted — now work through retry queue (errors)
   if (state.quizRetryQueue.length > 0) {
+    state.currentQuizTask = state.quizRetryQueue.shift();
     showScreen('quiz');
     renderUnifiedQuiz();
     return;
   }
 
-  if (state.currentUnifiedIdx >= state.unifiedQueue.length) {
-    markSectionDone();
-    return;
-  }
-
-  const task = state.unifiedQueue[state.currentUnifiedIdx];
-  state.currentUnifiedIdx++;
-
-  if (task.type === 'quiz') {
-    state.quizRetryQueue = [task];
-    showScreen('quiz');
-    renderUnifiedQuiz();
-  } else if (task.type === 'match') {
-    startMatch(task);
-  }
+  // All done
+  markSectionDone();
 }
 
 // ===== QUIZ =====
 function renderUnifiedQuiz() {
-  if (state.quizRetryQueue.length === 0) {
+  const task = state.currentQuizTask;
+  if (!task) {
     runNextUnifiedTask();
     return;
   }
 
-  const task = state.quizRetryQueue[0];
-
-  const totalRemaining = (state.unifiedQueue.length - state.currentUnifiedIdx) + state.quizRetryQueue.length;
+  const totalRemaining = (state.unifiedQueue.length - state.currentUnifiedIdx) + state.quizRetryQueue.length + 1;
   const progress = Math.max(5, ((state.unifiedTotal - totalRemaining) / state.unifiedTotal) * 100);
 
   const qlEl = document.getElementById('questions-left');
   if (qlEl) qlEl.textContent = `${t('questionsLeft')} ${totalRemaining}`;
   const qtEl = document.getElementById('question-text');
-  if (qtEl) qtEl.innerHTML = renderText(task.q);
+
+  // INPUT type rendering
+  if (task.type === 'input') {
+    if (qtEl) {
+      const isBlank = task.q.includes('___');
+
+      if (task.wordMask && !isBlank) {
+        // RETRY MODE (full-sentence only): correct words as text, wrong as inputs
+        const correctWords = task.a.split(/\s+/);
+        let html = renderText(task.q) + '<div class="word-inputs" style="margin-top:16px;display:flex;flex-wrap:wrap;gap:6px;align-items:center;">';
+        correctWords.forEach((word, i) => {
+          if (task.wordMask[i] === false) {
+            const w = Math.max(60, word.length * 14);
+            html += `<input type="text" class="word-input" data-index="${i}" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" style="width:${w}px;" placeholder="${'_'.repeat(word.length)}">`;
+          } else {
+            html += `<span class="word-static">${word}</span>`;
+          }
+        });
+        html += '</div>';
+        qtEl.innerHTML = html;
+        setTimeout(() => { const first = qtEl.querySelector('.word-input'); if (first) first.focus(); }, 100);
+      } else if (isBlank) {
+        // Fill-in-the-blank: replace ___ with input inline
+        const parts = task.q.split('___');
+        let html = '';
+        parts.forEach((part, i) => {
+          html += renderText(part);
+          if (i < parts.length - 1) {
+            html += `<input type="text" id="input-answer" class="inline-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="...">`;
+          }
+        });
+        qtEl.innerHTML = html;
+        setTimeout(() => { const inp = document.getElementById('input-answer'); if (inp) inp.focus(); }, 100);
+      } else {
+        // Full-sentence input
+        qtEl.innerHTML = renderText(task.q) + `<div style="margin-top:16px;"><input type="text" id="input-answer" class="block-input" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Введите ответ..."></div>`;
+        setTimeout(() => { const inp = document.getElementById('input-answer'); if (inp) inp.focus(); }, 100);
+      }
+    }
+    const list = document.getElementById('answers-list');
+    if (list) list.innerHTML = '';
+  } else {
+    // Regular quiz
+    if (qtEl) qtEl.innerHTML = renderText(task.q);
+    const answers = [task.a, ...task.wrongs].sort(() => Math.random() - 0.5);
+    const list = document.getElementById('answers-list');
+    if (!list) return;
+    list.innerHTML = '';
+    answers.forEach(ans => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.innerHTML = renderText(ans);
+      btn.dataset.answer = ans;
+      btn.addEventListener('click', () => selectAnswer(btn, ans, task));
+      list.appendChild(btn);
+    });
+  }
+
   const qpEl = document.getElementById('quiz-progress');
   if (qpEl) qpEl.style.width = `${progress}%`;
   const lcEl = document.getElementById('lives-count');
   if (lcEl) lcEl.textContent = totalRemaining;
-
-  const answers = [task.a, ...task.wrongs].sort(() => Math.random() - 0.5);
-  const list = document.getElementById('answers-list');
-  if (!list) return;
-  list.innerHTML = '';
-  answers.forEach(ans => {
-    const btn = document.createElement('button');
-    btn.className = 'answer-btn';
-    btn.innerHTML = renderText(ans);
-    btn.addEventListener('click', () => selectAnswer(btn, ans, task));
-    list.appendChild(btn);
-  });
 
   state.selectedAnswer = null;
   state.answered = false;
   const checkBtn = document.getElementById('check-btn');
   if (checkBtn) {
     checkBtn.textContent = t('checkBtn');
-    checkBtn.className = 'check-btn';
+    checkBtn.className = 'check-btn' + (task.type === 'input' ? ' ready' : '');
   }
   const fbBar = document.getElementById('feedback-bar');
   if (fbBar) fbBar.className = 'feedback-bar';
@@ -1768,21 +1919,145 @@ if (checkBtnEl) {
       const fbBar = document.getElementById('feedback-bar');
       if (fbBar) fbBar.className = 'feedback-bar';
       state.answered = false;
-      renderUnifiedQuiz();
+      runNextUnifiedTask();
       return;
     }
 
+    const task = state.currentQuizTask;
+    if (!task) return;
+
+    // INPUT type handling
+    if (task.type === 'input') {
+      if (state.answered) return;
+      state.answered = true;
+
+      function normalizeWord(s) {
+        return s.toLowerCase().replace(/[.,!?;:'"«»\-–—]+/g, '').trim();
+      }
+
+      // LCS alignment: maps each correct word to the best matching user word (in order)
+      function buildMaskLCS(correctWords, userWords) {
+        const cn = correctWords.map(normalizeWord);
+        const un = userWords.map(normalizeWord);
+        // Build LCS table
+        const dp = Array.from({length: cn.length + 1}, () => new Array(un.length + 1).fill(0));
+        for (let i = 1; i <= cn.length; i++) {
+          for (let j = 1; j <= un.length; j++) {
+            dp[i][j] = cn[i-1] === un[j-1] ? dp[i-1][j-1] + 1 : Math.max(dp[i-1][j], dp[i][j-1]);
+          }
+        }
+        // Backtrack to find which correct-word indices matched
+        const matched = new Set();
+        let i = cn.length, j = un.length;
+        while (i > 0 && j > 0) {
+          if (cn[i-1] === un[j-1]) { matched.add(i-1); i--; j--; }
+          else if (dp[i-1][j] >= dp[i][j-1]) i--;
+          else j--;
+        }
+        return correctWords.map((_, idx) => matched.has(idx));
+      }
+
+      const isBlank = task.q.includes('___');
+      let isCorrect = false;
+
+      if (task.wordMask && !isBlank) {
+        // RETRY MODE: collect word-input values
+        const correctWords = task.a.split(/\s+/);
+        const wordInputs = document.querySelectorAll('.word-input');
+        wordInputs.forEach(inp => { inp.disabled = true; });
+
+        // Check only the slots that were wrong
+        isCorrect = task.wordMask.every((wasCorrect, i) => {
+          if (wasCorrect) return true; // static word, already correct
+          const inp = document.querySelector(`.word-input[data-index="${i}"]`);
+          return inp && normalizeWord(inp.value) === normalizeWord(correctWords[i]);
+        });
+
+        if (!isCorrect) {
+          // Build new mask for still-wrong slots
+          const newMask = task.wordMask.map((wasCorrect, i) => {
+            if (wasCorrect) return true;
+            const inp = document.querySelector(`.word-input[data-index="${i}"]`);
+            return inp ? normalizeWord(inp.value) === normalizeWord(correctWords[i]) : false;
+          });
+          // Color each slot
+          task.wordMask.forEach((wasCorrect, i) => {
+            if (!wasCorrect) {
+              const inp = document.querySelector(`.word-input[data-index="${i}"]`);
+              if (inp) inp.style.borderColor = newMask[i] ? 'var(--success)' : 'var(--danger)';
+            }
+          });
+          state.quizRetryQueue.push({...task, wordMask: newMask});
+        } else {
+          document.querySelectorAll('.word-input').forEach(inp => { inp.style.borderColor = 'var(--success)'; });
+        }
+
+      } else {
+        // FIRST ATTEMPT
+        const inputEl = document.getElementById('input-answer');
+        if (!inputEl) { state.answered = false; return; }
+        const userVal = inputEl.value.trim();
+        inputEl.disabled = true;
+
+        const correctWords = task.a.split(/\s+/);
+        const userWords = userVal.split(/\s+/).filter(w => w.length > 0);
+        const correctNorm = correctWords.map(normalizeWord).join(' ');
+        const userNorm = userWords.map(normalizeWord).join(' ');
+        isCorrect = correctNorm === userNorm;
+
+        if (!isCorrect) {
+          inputEl.style.borderColor = 'var(--danger)';
+          if (!isBlank) {
+            // Full-sentence: build LCS mask for retry
+            const mask = buildMaskLCS(correctWords, userWords);
+            state.quizRetryQueue.push({...task, wordMask: mask});
+          } else {
+            // Blank task: just retry as-is (no mask)
+            state.quizRetryQueue.push({...task});
+          }
+        } else {
+          inputEl.style.borderColor = 'var(--success)';
+        }
+      }
+
+      const fb = document.getElementById('feedback-bar');
+      if (isCorrect) {
+        state.stats.correct++;
+        state.consecutiveErrors = 0;
+        let html = t('correct');
+        if (task.t) html += `<span class="hint">${renderText(task.t)}</span>`;
+        if (fb) { fb.className = 'feedback-bar correct'; fb.innerHTML = html; }
+        document.querySelectorAll('.word-input').forEach(inp => { inp.style.borderColor = 'var(--success)'; });
+      } else {
+        state.consecutiveErrors++;
+        let html = `${t('wrong')} ${task.a}`;
+        if (task.try) html += `<span class="hint">${renderText(task.try)}</span>`;
+        if (fb) { fb.className = 'feedback-bar wrong'; fb.innerHTML = html; }
+      }
+
+      state.stats.answers++;
+      const theoryBtn = document.getElementById('theory-btn');
+      if (theoryBtn) {
+        const course = state.courses[state.currentCourse];
+        const mod = course ? getActiveModule(course) : null;
+        if (state.consecutiveErrors >= 3 && mod && mod.theory) theoryBtn.classList.add('pulse-hint');
+        else theoryBtn.classList.remove('pulse-hint');
+      }
+      save();
+      if (checkBtn) { checkBtn.textContent = t('nextBtn'); checkBtn.className = 'check-btn next'; }
+      return;
+    }
+
+    // Regular quiz
     if (!state.selectedAnswer || state.answered) return;
 
     state.answered = true;
-    const task = state.quizRetryQueue[0];
-    if (!task) return;
     const correct = state.selectedAnswer === task.a;
     const answerText = state.selectedAnswer;
 
     document.querySelectorAll('.answer-btn').forEach(btn => {
-      if (btn.textContent === task.a) btn.classList.add('correct');
-      else if (btn.textContent === answerText && !correct) btn.classList.add('wrong');
+      if (btn.dataset.answer === task.a) btn.classList.add('correct');
+      else if (btn.dataset.answer === answerText && !correct) btn.classList.add('wrong');
     });
 
     state.stats.answers++;
@@ -1790,13 +2065,16 @@ if (checkBtnEl) {
     if (correct) {
       state.stats.correct++;
       state.consecutiveErrors = 0;
-      if (fb) { fb.className = 'feedback-bar correct'; fb.innerHTML = t('correct'); }
-      state.quizRetryQueue.shift();
+      let html = t('correct');
+      if (task.t) html += `<span class="hint">${renderText(task.t)}</span>`;
+      if (fb) { fb.className = 'feedback-bar correct'; fb.innerHTML = html; }
     } else {
       state.consecutiveErrors++;
-      if (fb) { fb.className = 'feedback-bar wrong'; fb.innerHTML = `${t('wrong')} ${task.a}`; }
-      const t2 = state.quizRetryQueue.shift();
-      state.quizRetryQueue.push(t2);
+      let html = `${t('wrong')} ${task.a}`;
+      if (task.try) html += `<span class="hint">${renderText(task.try)}</span>`;
+      if (fb) { fb.className = 'feedback-bar wrong'; fb.innerHTML = html; }
+      // Wrong answer: push to retry queue (after all primary tasks)
+      state.quizRetryQueue.push({...task});
     }
 
     // Theory pulse after 3 consecutive errors
